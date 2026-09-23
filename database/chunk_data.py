@@ -1,22 +1,3 @@
-"""
-Step 2: Per-type chunking.
-
-- case: split main_text into ~400-word, sentence-aligned chunks.
-         Every chunk inherits the FULL parent metadata, plus a
-         chunk_index so we know where it sat in the original text.
-- article / notification / query: kept as a single chunk (already short).
-
-Output: chunks.jsonl - one JSON object per chunk:
-    {
-        "chunk_id": "<record_id>_<chunk_index>",
-        "doc_id": "<record_id>",
-        "doc_type": ...,
-        "title": ...,
-        "text": "<the actual text to embed>",
-        "metadata": {...}   # same metadata as the parent record
-    }
-"""
-
 import json
 import re
 
