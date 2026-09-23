@@ -63,19 +63,19 @@ class ChatResponse(BaseModel):
     sources: list[SourceItem]
 
 
-@app.on_event("startup")
-def startup_event():
-    print("Loading embedding model, Milvus collection, and BM25 index...")
-    embed_model, milvus_client, bm25, bm25_chunks = step6.load_resources()
-    resources["embed_model"] = embed_model
-    resources["milvus_client"] = milvus_client
-    resources["bm25"] = bm25
-    resources["bm25_chunks"] = bm25_chunks
-    print("Ready.")
+
 
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
+    if not resources:
+      print("Loading embedding model, Milvus collection, and BM25 index...")
+      embed_model, milvus_client, bm25, bm25_chunks = step6.load_resources()
+      resources["embed_model"] = embed_model
+      resources["milvus_client"] = milvus_client
+      resources["bm25"] = bm25
+      resources["bm25_chunks"] = bm25_chunks
+    print("Resources loaded.")
     result = step6.ask(
         req.query,
         resources["embed_model"],
