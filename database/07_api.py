@@ -1,22 +1,3 @@
-"""
-Step 7: FastAPI backend.
-
-Loads the embedding model, Milvus connection, and BM25 index ONCE at
-startup, then serves /chat requests using the same retrieval+generation
-pipeline built in Step 6.
-
-Run with:
-    pip install fastapi uvicorn
-    uvicorn 07_api:app --reload --port 8000
-
-Then test with:
-    curl -X POST http://localhost:8000/chat -H "Content-Type: application/json" -d "{\"query\": \"your question\"}"
-
-Note: this file imports functions from 06_hybrid_retrieve_and_generate.py,
-so keep both files (and law_project.db, bm25_index.pkl, bm25_chunks.pkl) in
-the same folder.
-"""
-
 import importlib.util
 import sys
 from pathlib import Path
