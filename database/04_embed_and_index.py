@@ -1,15 +1,3 @@
-"""
-Step 4: Embed chunks and store in Milvus (Milvus Lite - embedded, file-based,
-no separate server needed for a corpus this size).
-
-Model: BAAI/bge-base-en-v1.5 (local, free, no API key)
-
-IMPORTANT: bge models expect a query-side instruction prefix at search time
-(NOT added to documents here). That happens in Step 6 when we build search.
-
-Output: law_project.db (Milvus Lite database file, created in this folder)
-"""
-
 import json
 from pymilvus import MilvusClient, DataType
 from sentence_transformers import SentenceTransformer
