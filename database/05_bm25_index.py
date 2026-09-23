@@ -1,15 +1,3 @@
-"""
-Step 5: BM25 keyword index (for hybrid retrieval alongside Milvus).
-
-Embeddings are strong on meaning, weak on exact tokens (section numbers,
-citation strings, specific party names). BM25 catches those. At query time
-(Step 6) we'll run both and merge rankings with reciprocal rank fusion.
-
-Output:
-    bm25_index.pkl   - the fitted BM25 index
-    bm25_chunks.pkl  - parallel list of chunk dicts (same order as the index)
-"""
-
 import json
 import pickle
 import re
