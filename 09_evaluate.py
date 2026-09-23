@@ -1,20 +1,3 @@
-"""
-Evaluation using querycleaned.xlsx as a held-out test set.
-
-Part 1 - Retrieval accuracy (fast, automatic, no LLM call):
-    For each of the 37 FAQ questions, check whether the FAQ's own indexed
-    chunk appears in the top-k retrieved results (hybrid: vector + BM25 merged).
-    This tests whether retrieval is fundamentally sound.
-
-Part 2 - Answer quality (slower, needs the LLM):
-    For a sample of N questions, run full generation and print the system's
-    answer next to the known-correct answer for manual side-by-side review.
-
-Usage:
-    python 09_evaluate.py                # retrieval eval only (fast)
-    python 09_evaluate.py --full 8       # also run full generation on 8 sample questions
-"""
-
 import argparse
 import importlib.util
 import json
