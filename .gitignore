@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+.env
+*.env
+.vscode/
+/data/
+chunks.jsonl
+chunks_with_citations.jsonl
+unified_records.jsonl
+database/__pycache__/
+law_project.db/.database-staging/
+law_project.db/LOCK

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LexRAG — Corporate Law Research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B10;
+    --surface: #16151D;
+    --surface-raised: #1D1C26;
+    --border: rgba(255,255,255,0.08);
+    --text: #F2F1F5;
+    --text-soft: #8E8CA0;
+    --indigo: #6C63FF;
+    --indigo-dim: rgba(108,99,255,0.16);
+    --gold: #E3A857;
+    --gold-dim: rgba(227,168,87,0.14);
+    --green: #4ADE80;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    height: 100%;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Subtle depth: two soft, muted glows - not a single neon accent */
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::before {
+    width: 480px;
+    height: 480px;
+    top: -180px;
+    left: -120px;
+    background: rgba(108, 99, 255, 0.16);
+  }
+  body::after {
+    width: 420px;
+    height: 420px;
+    bottom: -160px;
+    right: -100px;
+    background: rgba(227, 168, 87, 0.10);
+  }
+
+  header, main, footer { position: relative; z-index: 1; }
+
+  header {
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6C63FF, #8B7CFF);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .wordmark {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-soft);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 11px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18);
+  }
+
+  main {
+    flex: 1;
+    max-width: 760px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 20px 170px;
+    overflow-y: auto;
+  }
+
+  .empty-state {
+    margin-top: 10vh;
+    text-align: center;
+  }
+
+  .empty-state h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 10px;
+    background: linear-gradient(100deg, #F2F1F5, #C9C6FF 60%, #E3A857);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .empty-state p {
+    color: var(--text-soft);
+    font-size: 14.5px;
+    line-height: 1.6;
+    max-width: 440px;
+    margin: 0 auto 26px;
+  }
+
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .suggestion-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .suggestion-chip:hover {
+    border-color: var(--indigo);
+    background: var(--indigo-dim);
+  }
+
+  .turn {
+    margin-bottom: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: rise 0.25s ease-out;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .row-user {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .bubble-user {
+    background: var(--indigo);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 16px 16px 4px 16px;
+    max-width: 82%;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .row-assistant {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .assistant-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: calc(100% - 40px);
+  }
+
+  .bubble-assistant {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    border-radius: 4px 16px 16px 16px;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  .bubble-assistant.error {
+    border-color: #6B3A3A;
+    color: #E5A0A0;
+  }
+
+  .typing {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+  }
+
+  .typing span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-soft);
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  .cite {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 5px;
+    margin: 0 1px;
+    background: var(--gold-dim);
+    color: var(--gold);
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: background 0.15s ease;
+  }
+
+  .cite:hover {
+    background: rgba(227, 168, 87, 0.28);
+  }
+
+  .sources-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .source-chip {
+    display: flex;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    color: var(--text-soft);
+    cursor: pointer;
+  }
+
+  .source-chip .num {
+    color: var(--gold);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .source-chip .preview {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .source-chip.expanded .preview {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .no-sources {
+    font-size: 12px;
+    color: var(--text-soft);
+    font-style: italic;
+  }
+
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, var(--bg) 55%, transparent);
+    padding: 20px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  form {
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 8px 8px 18px;
+  }
+
+  textarea {
+    flex: 1;
+    border: none;
+    background: transparent;
+    resize: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    padding: 9px 0;
+    line-height: 1.4;
+    max-height: 140px;
+  }
+
+  textarea::placeholder { color: var(--text-soft); }
+  textarea:focus { outline: none; }
+
+  .send-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    border: none;
+    background: var(--indigo);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+
+  .send-btn:hover:not(:disabled) {
+    background: #5750E0;
+  }
+
+  .send-btn:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+
+  .send-btn:disabled {
+    background: var(--border);
+    cursor: default;
+  }
+
+  .send-btn svg { width: 16px; height: 16px; }
+
+  button:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--indigo);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .turn { animation: none; }
+    .typing span { animation: none; opacity: 0.7; }
+    .send-btn { transition: none; }
+  }
+
+  @media (max-width: 480px) {
+    .bubble-user { max-width: 92%; }
+    .assistant-col { max-width: calc(100% - 34px); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo-mark">§</div>
+    <span class="wordmark">LexRAG</span>
+  </div>
+  <div class="status-pill">
+    <span class="status-dot"></span>
+    Running locally
+  </div>
+</header>
+
+<main id="transcript">
+  <div class="empty-state" id="empty-state">
+    <h1>Ask about corporate law</h1>
+    <p>Case law, notifications, and compliance articles — every answer is grounded in the indexed corpus and cited.</p>
+    <div class="suggestions">
+      <button class="suggestion-chip" type="button" data-q="Can prosecution be withdrawn if an offence is compounded under the Companies Act?">Compounding & withdrawal of prosecution</button>
+      <button class="suggestion-chip" type="button" data-q="What did the NCLAT decide about resolution professionals in insolvency cases?">NCLAT on resolution professionals</button>
+      <button class="suggestion-chip" type="button" data-q="Has the government made any notification about the New Development Bank?">New Development Bank notification</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <form id="ask-form">
+    <textarea id="question-input" rows="1" placeholder="Ask a question…" required></textarea>
+    <button type="submit" class="send-btn" id="ask-button" aria-label="Send">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5"></line>
+        <polyline points="6 11 12 5 18 11"></polyline>
+      </svg>
+    </button>
+  </form>
+</footer>
+
+<script>
+  const API_URL = "http://localhost:8000/chat";
+
+  const transcript = document.getElementById("transcript");
+  const emptyState = document.getElementById("empty-state");
+  const form = document.getElementById("ask-form");
+  const input = document.getElementById("question-input");
+  const button = document.getElementById("ask-button");
+
+  input.addEventListener("input", () => {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 140) + "px";
+  });
+
+  document.querySelectorAll(".suggestion-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      submitQuestion(chip.dataset.q);
+    });
+  });
+
+  function renderAnswerWithCiteChips(rawAnswer) {
+    return rawAnswer.replace(/\[(\d+)\]/g, (match, n) => `<span class="cite" data-ref="${n}">${n}</span>`);
+  }
+
+  function buildTurn(question) {
+    const turn = document.createElement("div");
+    turn.className = "turn";
+
+    const userRow = document.createElement("div");
+    userRow.className = "row-user";
+    const userBubble = document.createElement("div");
+    userBubble.className = "bubble-user";
+    userBubble.textContent = question;
+    userRow.appendChild(userBubble);
+    turn.appendChild(userRow);
+
+    const assistantRow = document.createElement("div");
+    assistantRow.className = "row-assistant";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = "§";
+    assistantRow.appendChild(avatar);
+
+    const col = document.createElement("div");
+    col.className = "assistant-col";
+
+    const assistantBubble = document.createElement("div");
+    assistantBubble.className = "bubble-assistant";
+    assistantBubble.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+    col.appendChild(assistantBubble);
+
+    assistantRow.appendChild(col);
+    turn.appendChild(assistantRow);
+
+    transcript.appendChild(turn);
+    transcript.scrollTop = transcript.scrollHeight;
+
+    return { turn, col, assistantBubble };
+  }
+
+  function scrollToChip(turn, refNum) {
+    const chip = turn.querySelector(`.source-chip[data-label="${refNum}"]`);
+    if (chip) {
+      chip.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      chip.classList.add("expanded");
+    }
+  }
+
+  async function askQuestion(question) {
+    const { turn, col, assistantBubble } = buildTurn(question);
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: question }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      assistantBubble.className = "bubble-assistant";
+      assistantBubble.innerHTML = renderAnswerWithCiteChips(data.answer);
+
+      assistantBubble.querySelectorAll(".cite").forEach(el => {
+        el.addEventListener("click", () => scrollToChip(turn, el.dataset.ref));
+      });
+
+      if (data.sources && data.sources.length > 0) {
+        const sourcesRow = document.createElement("div");
+        sourcesRow.className = "sources-row";
+        data.sources.forEach(s => {
+          const chip = document.createElement("div");
+          chip.className = "source-chip";
+          chip.dataset.label = s.label;
+          const num = document.createElement("span");
+          num.className = "num";
+          num.textContent = `[${s.label}]`;
+          const preview = document.createElement("span");
+          preview.className = "preview";
+          preview.textContent = s.citation;
+          chip.appendChild(num);
+          chip.appendChild(preview);
+          chip.addEventListener("click", () => chip.classList.toggle("expanded"));
+          sourcesRow.appendChild(chip);
+        });
+        col.appendChild(sourcesRow);
+      } else {
+        const note = document.createElement("div");
+        note.className = "no-sources";
+        note.textContent = "No sources cited for this answer.";
+        col.appendChild(note);
+      }
+    } catch (err) {
+      assistantBubble.className = "bubble-assistant error";
+      assistantBubble.textContent = `Could not reach the backend (${err.message}). Make sure the API server is running at ${API_URL}.`;
+    }
+
+    transcript.scrollTop = transcript.scrollHeight;
+  }
+
+  function submitQuestion(question) {
+    if (emptyState) emptyState.remove();
+    button.disabled = true;
+    askQuestion(question).finally(() => {
+      button.disabled = false;
+      input.focus();
+    });
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question) return;
+    input.value = "";
+    input.style.height = "auto";
+    submitQuestion(question);
+  });
+</script>
+
+</body>
+</html>

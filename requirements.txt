@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+sentence-transformers
+pymilvus[milvus_lite]
+rank-bm25
+requests
+google-genai
