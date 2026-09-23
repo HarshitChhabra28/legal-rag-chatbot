@@ -1,38 +1,3 @@
-"""
-Step 1: Clean and unify schema.
-
-Reads the four client-provided sheets (caselaw, articles, notifications,
-query FAQs) and normalizes them into one common record shape:
-
-    {
-        "id": "<doc_type>_<original_id>",
-        "doc_type": "case" | "article" | "notification" | "query",
-        "title": str,
-        "main_text": str,          # the field we will chunk + embed
-        "date": str | None,
-        "metadata": {...}          # everything needed to build a citation string
-    }
-
-Output: unified_records.jsonl (one JSON object per line)
-"""
-"""
-Step 1: Clean and unify schema.
-
-Reads the four client-provided sheets (caselaw, articles, notifications,
-query FAQs) and normalizes them into one common record shape:
-
-    {
-        "id": "<doc_type>_<original_id>",
-        "doc_type": "case" | "article" | "notification" | "query",
-        "title": str,
-        "main_text": str,          # the field we will chunk + embed
-        "date": str | None,
-        "metadata": {...}          # everything needed to build a citation string
-    }
-
-Output: unified_records.jsonl (one JSON object per line)
-"""
-
 import json
 import re
 import pandas as pd
