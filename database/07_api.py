@@ -20,7 +20,7 @@ the same folder.
 import importlib.util
 import sys
 from pathlib import Path
-
+from fastapi.responses import FileResponse
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -89,3 +89,6 @@ def chat(req: ChatRequest):
 @app.get("/health")
 def health():
     return {"status": "ok", "loaded": bool(resources)}
+@app.get("/")
+def home():
+    return FileResponse(Path(__file__).parent.parent / "frontend.html")

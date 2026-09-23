@@ -112,7 +112,7 @@ def build_prompt(query, chunks):
 
     system = (
         "You are a legal research assistant. Answer the user's question using ONLY "
-        "the numbered context blocks below. You MUST cite sources inline using ONLY "
+        " the numbered context blocks below. You MUST cite sources inline using ONLY "
         "the exact format [n] where n is the context block number (e.g. [1], [2]) - "
         "never add anything else inside or immediately after the brackets, such as "
         "paragraph numbers, notes, or a second bracket right after a case name. "
@@ -151,6 +151,15 @@ def build_prompt(query, chunks):
         "high-level description and explicitly say that the provided context does "
         "not contain further procedural details. "
  
+        "Special case for definitional questions: if the user asks what a term "
+        "means and no retrieved source explicitly defines it, do NOT simply refuse. "
+        "Instead, describe how the term is actually used across the retrieved "
+        "sources - what procedures, decisions, approvals, or consequences are "
+        "discussed in connection with it - and then explicitly state that no "
+        "formal definition was found in the supplied context. This is still fully "
+        "grounded: you are reporting what the sources say ABOUT the term, not "
+        "supplying your own definition of it. "
+ 
         "Before using a retrieved case or article to answer, check whether it "
         "actually addresses the specific question asked, not just the general "
         "topic or area of law. A case about a different type of dispute, a "
@@ -158,8 +167,7 @@ def build_prompt(query, chunks):
         "the question just because it shares a keyword or subject area. If none "
         "of the retrieved sources actually address the specific question, say the "
         "context is insufficient rather than stretching a loosely related source "
-        "into an answer."
-    )
+        "into an answer.")
     user_content = f"Context:\n{context_text}\n\nQuestion: {query}"
     return system, user_content
 
@@ -202,7 +210,7 @@ def ask(query, embed_model, milvus_client, bm25, bm25_chunks):
 def main():
     embed_model, milvus_client, bm25, bm25_chunks = load_resources()
 
-    test_query = "Can prosecution be withdrawn if the offence is compounded under the Companies Act?"
+    test_query = "Can promoters of a corporate debtor file application for insolvency resolution process against it? What are the recent judgments on it ?"
     result = ask(test_query, embed_model, milvus_client, bm25, bm25_chunks)
 
     print("ANSWER:\n", result["answer"])
