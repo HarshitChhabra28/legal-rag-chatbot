@@ -1,12 +1,3 @@
-"""
-Multi-question smoke test.
-
-Runs a handful of diverse questions (spanning case law, articles,
-notifications, and FAQ-style queries) through the full pipeline so you can
-eyeball answer quality and citation correctness across the whole corpus,
-not just one example.
-"""
-
 import importlib.util
 import sys
 from pathlib import Path
