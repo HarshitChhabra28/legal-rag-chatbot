@@ -1,22 +1,3 @@
-"""
-Step 6: Hybrid retrieval + answer generation with a LOCAL LLM via Ollama (free).
-
-Pipeline for one user question:
-  1. Embed the question (with the bge query instruction prefix) -> search Milvus.
-  2. Tokenize the question -> search BM25.
-  3. Merge both ranked lists with Reciprocal Rank Fusion (RRF).
-  4. Build a prompt that labels each retrieved chunk [1], [2], ... and instructs
-     the model to answer ONLY from that context and reference labels inline.
-  5. Call the local model through Ollama, then map the labels it used back to
-     the pre-built citation strings from Step 3 - the model never generates
-     citation text itself.
-
-Requires:
-    pip install pymilvus sentence-transformers rank_bm25 requests
-    Ollama installed and running (https://ollama.com/download)
-    Then in a terminal: ollama pull llama3.1:8b
-"""
-
 import json
 import pickle
 import re
