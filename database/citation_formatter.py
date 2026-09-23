@@ -1,11 +1,3 @@
-"""
-Step 3: Citation formatting.
-
-Turns a chunk's metadata into the citation string a human would expect
-to see under "Sources:". This runs at RETRIEVAL time in the final app -
-never ask the LLM to reproduce a citation itself.
-"""
-
 import json
 
 
